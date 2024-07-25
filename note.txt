@@ -1,0 +1,37 @@
+1. Trong LSTM đã có cơ chế quên/nhớ nên liệu Attention có thực sự cần thiết không?
+    - Kiểm chứng tính cần thiết của Attention hoặc một vài cơ chế.
+    - Có thể thiết kế một kiến trúc mới không?
+    - Game Theory in BPP
+
+2. Có thể nhìn nhận Bin Packing như một bài toán tối ưu đa mục tiêu không?
+    - Các mục tiêu bao gồm: utility, stability, distribution, flexibility, generality,... => Tính reward
+    - Phương pháp: Tổng trọng số, Multi-objective Proximal Policy Optimization
+    -> Two Phase
+    - Học tăng cường đa tác tử
+
+3. Có thể nhìn nhận Bin Packing với đa ràng buộc không?
+    - Time Windows
+    - Flexibility
+
+4. Nhược điểm của phương pháp DRL hiện tại:
+    - Large-scale Instances: Mở rộng quy mô và hiệu quả khi số lượng tăng
+    - Khả năng tổng quát hóa
+    - Khả năng diễn giải hành động -> hành động minh bạch, dễ hiểu, quan trọng để áp dụng trong thực tế
+    - Khả năng áp dụng trong thực tiễn
+    - Khả năng học trong môi trường thay đổi liên tục
+    - Khả năng chuyển giao tri thức và mối quan hệ với bài toán khác
+        + 1D -> 2D -> 3D
+        + static BPP -> dynamic BPP (biến mất vật phẩm)
+        + offline BPP -> online BPP 
+        + BPP & VRP, BPP & Scheduling Problem, BPP & KP
+    - Encoder | Decoder Architecture: 
+    Encoder -> Tensor W × L × 2 (Conditional Probabilities (Heat Map) | Action Value) | 3D Convolutional
+    - Reward Feedback
+    - Data
+    - Failed Action Sequence
+
+5. Chia để trị: Phân chia theo vùng
+
+6. Rotating | Repacking, Unpacking, Merging, Swapping, Hedging -> Combinatoric Action Space
+
+7. Failed Action Sequence
