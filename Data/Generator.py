@@ -1,7 +1,8 @@
+import os
 import random
 import matplotlib.pyplot as plt
 import seaborn as sns
-import os
+
 from typing import List, Tuple
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
@@ -46,7 +47,7 @@ class Generator:
         # Initialize items with a single bin
         self.items = [([0, 0, 0], self.bin_size)]
         
-        while len(self.items) < self.n_items + self.n_samples:
+        for _ in range(self.n_items + self.n_samples - 1):
             (origin, item) = self.items.pop()
             
             # Choose the dimension with the largest size to split
@@ -78,8 +79,7 @@ class Generator:
 
         # Sort items by height to remove some topmost items
         self.items.sort(key=lambda x: x[0][2])
-        residual: int = len(self.items) - self.n_items
-        for _ in range(residual):
+        for _ in range(self.n_samples):
             item = self.items.pop()
             self.volume -= item[1][0] * item[1][1] * item[1][2]
         
@@ -165,10 +165,12 @@ class Generator:
         os.remove(filename)
 
 # Example of using the Generator class
+"""
 generator = Generator(200, 1, bin_size=[100, 200, 150])
 generator.generate()
 generator.visualize()
 generator.delete()
+"""
 
 for i in range(100):
     generator = Generator(100, i, bin_size=[100, 100, 100])
