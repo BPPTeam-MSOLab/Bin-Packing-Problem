@@ -1,6 +1,6 @@
 import random
 
-def generate_bin_packing_data(num_items, seed, num_samples=20):
+def generate_bin_packing_data(num_items, seed, num_samples=10):
     if num_items < 10 or num_items > 1000:
         raise ValueError('num_items must be in range [10, 1000]')
     
@@ -41,13 +41,13 @@ def generate_bin_packing_data(num_items, seed, num_samples=20):
         items.append(new_item1)
         items.append(new_item2)
 
-    random.shuffle(items)
-
     volume = 1
 
     for _ in range(num_samples):
         item = items.pop()
         volume = volume - item[0] * item[1] * item[2] / 1000000
+    
+    random.shuffle(items)
     
     filename = f'Data/{num_items}_{seed}.dat'
     with open(filename, 'w') as file:
@@ -55,5 +55,5 @@ def generate_bin_packing_data(num_items, seed, num_samples=20):
         for item in items:
             file.write(f'{item[0]} {item[1]} {item[2]}\n')
 
-for i in range(10):
+for i in range(100):
     generate_bin_packing_data(100, i)
