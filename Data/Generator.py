@@ -5,14 +5,17 @@ import os
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 class Generator:
-    def __init__(self, n_items, seed=0, bin_size=[100, 100, 100]):
+    def __init__(self, n_items, seed=0, bin_size=[100, 100, 100], **kargs):
         self.n_items = n_items
         self.seed = seed
         self.bin_size = bin_size
         self.items = []
         self.volume = bin_size[0] * bin_size[1] * bin_size[2]
 
-        self.n_samples = n_items // 10
+        if 'n_samples' in kargs:
+            self.n_samples = kargs['n_samples']
+        else:
+            self.n_samples = n_items // 10
 
     def generate(self):
         if self.n_items < 10 or self.n_items > 1000:
