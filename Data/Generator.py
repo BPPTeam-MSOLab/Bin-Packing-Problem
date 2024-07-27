@@ -1,13 +1,12 @@
 import random
 
-def generate_bin_packing_data(n_items, seed=0, n_samples=5):
+def generate_bin_packing_data(n_items, seed=0, n_samples=5, bin_size = [100, 100, 100]):
     if n_items < 10 or n_items > 1000:
         raise ValueError('Number of items must be between 10 and 1000')
     
     random.seed(seed)
 
     # Initialize items with a single bin
-    bin_size = [100, 100, 100]
     items = [([0, 0, 0], bin_size)]
     
     while len(items) < n_items + n_samples:
@@ -43,7 +42,7 @@ def generate_bin_packing_data(n_items, seed=0, n_samples=5):
     # Sort items by height to remove some topmost items
     items.sort(key=lambda x: x[0][2])
     residual = len(items) - n_items
-    volume = 1000000
+    volume = bin_size[0] * bin_size[1] * bin_size[2]
     for _ in range(residual):
         item = items.pop()
         volume -= item[1][0] * item[1][1] * item[1][2]
