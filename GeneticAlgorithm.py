@@ -7,8 +7,6 @@ We implement a genetic algorithm to solve the 3D bin packing problem.
 - The placement of items in the bin can follow several heuristic methods.
 - This approach significantly reduces the search space and computational complexity.
 """
-def function(x: List[float]) -> float:
-    pass
 
 # Use singleton technique as a Configuration class to store global parameters
 class Configuration:
@@ -144,7 +142,7 @@ class Population:
             chromosome = np.random.rand(2 * self.n_items)
             mutant = Individual(chromosome, self.function)
             mutants.append(mutant)
-            
+
         return mutants
 
 class Optimizer:
@@ -162,3 +160,8 @@ class Optimizer:
             mutants = self.population.mutation()
             self.population.individuals = self.population.elites + offsprings + mutants
 
+# Define the objective function to evaluate the fitness of an individual
+
+"""
+- In this part, we decode the chromosome of an individual as an placement strategy to calculate its fitness.
+"""
