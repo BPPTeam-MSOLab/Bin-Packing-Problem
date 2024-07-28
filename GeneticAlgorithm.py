@@ -1,5 +1,7 @@
 import numpy as np
-from typing import List, Callable
+from typing import List, Tuple, Callable
+from Problem import Problem
+from functools import partial
 
 """
 We implement a genetic algorithm to solve the 3D bin packing problem.
@@ -60,11 +62,7 @@ class Individual:
         self.cofig = Configuration()
 
         self.chromosome = chromosome
-        self.fitness = self.evaluate()
-
-    def evaluate(self):
-        fitness = self.cofig.objective_function(self.chromosome)
-        return fitness
+        self.fitness = self.cofig.objective_function(chromosome)
 
 class Population:
     def __init__(self):
@@ -161,18 +159,17 @@ class Optimizer:
             mutants = self.population.mutation()
             self.population.individuals = self.population.elites + offsprings + mutants
 
+# TEST THE GENETIC ALGORITHM
+if 11 < 3:
+    def objective_function(chromosome: List[float]) -> float:
+        return sum(chromosome)
 
-"""
-TEST THE GENETIC ALGORITHM
-def objective_function(chromosome: List[float]) -> float:
-    return sum(chromosome)
+    config = Configuration(objective_function, 5, 10, 2, 10, 0.8, 0.1)
 
-config = Configuration(objective_function, 5, 10, 2, 10, 0.8, 0.1)
+    np.random.seed(0)
+    optimizer = Optimizer()
+    optimizer.optimize()
 
-np.random.seed(0)
-optimizer = Optimizer()
-optimizer.optimize()
-"""
 
 # Define the objective function to evaluate the fitness of an individual
 
@@ -182,4 +179,45 @@ In this part, we decode the chromosome of an individual as an placement strategy
 * First, 
 """
 
-# Test the genetic algorithm
+def evaluate(solution: List[float], problem: Problem) -> float:
+    total_items = problem.n_items * problem.n_bins
+
+    if len(solution) != 2 * total_items:
+        raise ValueError('Chromosome length does not match the number of items and bins')
+    
+    def get_orientation(gene: float) -> int:
+        return int(np.ceil(6 * gene)) # 1 <= orientation <= 6
+    
+    def get_size(item: Tuple[int], orientation: int) -> Tuple[int]:
+        x, y, z = item
+        if   orientation == 1: return (x, y, z)
+        elif orientation == 2: return (x, z, y)
+        elif orientation == 3: return (y, x, z)
+        elif orientation == 4: return (y, z, x)
+        elif orientation == 5: return (z, x, y)
+        elif orientation == 6: return (z, y, x)
+
+    orders = np.argsort(solution[:total_items])
+    sequence = [0] * total_items
+    
+    for i in range(total_items):
+        item = problem.items[i]
+        orientation = get_orientation(solution[total_items + i])
+        size = get_size(item, orientation)
+        order = orders[i]
+        sequence[order] = size # Sequence is a list of sizes of items in the order of placement
+
+# TEST THE OBJECTIVE FUNCTION
+if 11 < 3:
+    np.random.seed(0)
+    problem = Problem('Data/Dataset/50_5_1.dat')
+    solution = np.random.rand(2 * problem.n_items * problem.n_bins)
+    fitness = evaluate(solution, problem)
+        
+
+if 1 < 3:
+    def solve(path):
+        problem = Problem(path)
+        objective_function = partial(evaluate, problem)
+        Configuration(objective_function, problem.n_items, 10, 2, 10, 0.8, 0.1)
+        Optimizer().optimize()
