@@ -13,18 +13,18 @@ class Configuration:
     _instance = None
 
     def __new__(cls, *args, **kwargs):
-        if not cls._instance:
-            cls._instance = super(Configuration, cls).__new__(cls, *args, **kwargs)
+        if cls._instance is None:
+            cls._instance = super(Configuration, cls).__new__(cls)
         return cls._instance
     
     def __init__(self,
-                 objective_function: Callable[[List[float]], float],
-                 n_items: int,
-                 n_individuals: int,
-                 n_elites: int,
-                 n_generations: int,
-                 p_crossover: float,
-                 p_mutation: float):
+                 objective_function: Callable[[List[float]], float] = None,
+                 n_items: int = None,
+                 n_individuals: int = None,
+                 n_elites: int = None,
+                 n_generations: int = None,
+                 p_crossover: float = None,
+                 p_mutation: float = None):
         if not hasattr(self, 'initialized'):
             self.objective_function = objective_function
             self.n_items = n_items
@@ -62,8 +62,9 @@ class Individual:
         self.chromosome = chromosome
         self.fitness = self.evaluate()
 
-    def evaluate(self) -> None:
-        self.fitness = self.cofig.objective_function(self.chromosome)
+    def evaluate(self):
+        fitness = self.cofig.objective_function(self.chromosome)
+        return fitness
 
 class Population:
     def __init__(self):
@@ -91,7 +92,7 @@ class Population:
         """
         for _ in range(self.n_individuals):
             chromosome = np.random.rand(2 * self.n_items)
-            individual = Individual(chromosome, self.function)
+            individual = Individual(chromosome)
             self.individuals.append(individual)
 
     def partition(self):
@@ -101,10 +102,10 @@ class Population:
         self.fitnesses = [individual.fitness for individual in self.individuals]
         indices = np.argsort(self.fitnesses)
         print(f'Best fitness: {self.fitnesses[indices[0]]}')
-        self.elites = self.individuals[indices[:self.n_elites]]
-        self.non_elites = self.individuals[indices[self.n_elites:]]
+        self.elites = [self.individuals[i] for i in indices[:self.n_elites]]
+        self.non_elites = [self.individuals[i] for i in indices[self.n_elites:]]
 
-    def crossover(self, elite: Individual, non_elite: Individual) -> List[float]:
+    def crossover(self, elite: Individual, non_elite: Individual) -> Individual:
         """
         - Crossover is performed between one elite and one non-elite individual.
         - Each gene is randomly chosen from either parent with a probability of p_crossover. 
@@ -118,7 +119,7 @@ class Population:
             else:
                 offspring[i] = non_elite.chromosome[i]
 
-        return offspring
+        return Individual(offspring)
     
     def mating(self):
         """
@@ -140,7 +141,7 @@ class Population:
         mutants: List[Individual] = []
         for _ in range(self.n_mutants):
             chromosome = np.random.rand(2 * self.n_items)
-            mutant = Individual(chromosome, self.function)
+            mutant = Individual(chromosome)
             mutants.append(mutant)
 
         return mutants
@@ -163,5 +164,17 @@ class Optimizer:
 # Define the objective function to evaluate the fitness of an individual
 
 """
-- In this part, we decode the chromosome of an individual as an placement strategy to calculate its fitness.
+In this part, we decode the chromosome of an individual as an placement strategy to calculate its fitness.
+
+* First, 
 """
+
+# Test the genetic algorithm
+def objective_function(chromosome: List[float]) -> float:
+    return sum(chromosome)
+
+config = Configuration(objective_function, 5, 10, 2, 10, 0.8, 0.1)
+
+np.random.seed(0)  
+optimizer = Optimizer()
+optimizer.optimize()
