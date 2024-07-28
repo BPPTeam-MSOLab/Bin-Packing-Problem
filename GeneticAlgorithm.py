@@ -1,5 +1,164 @@
 import numpy as np
+from typing import List, Callable
 
 """
 We implement a genetic algorithm to solve the 3D bin packing problem.
+- Instead of determining the exact coordinate of each item, we look for the order in which items are placed in the bin.
+- The placement of items in the bin can follow several heuristic methods.
+- This approach significantly reduces the search space and computational complexity.
 """
+def function(x: List[float]) -> float:
+    pass
+
+# Use singleton technique as a Configuration class to store global parameters
+class Configuration:
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(Configuration, cls).__new__(cls, *args, **kwargs)
+        return cls._instance
+    
+    def __init__(self,
+                 objective_function: Callable[[List[float]], float],
+                 n_items: int,
+                 n_individuals: int,
+                 n_elites: int,
+                 n_generations: int,
+                 p_crossover: float,
+                 p_mutation: float):
+        if not hasattr(self, 'initialized'):
+            self.objective_function = objective_function
+            self.n_items = n_items
+            self.n_individuals = n_individuals
+            self.n_elites = n_elites
+            self.n_generations = n_generations
+            self.p_crossover = p_crossover
+            self.p_mutation = p_mutation
+            self.initialized = True
+
+class Individual:
+    """
+    We use Random-Key Representation to encode the chromosome of an individual.
+    * First n genes are used to encode the order of n items.
+    - Each gene is a random number between 0 and 1.
+    - The order of genes in the chromosome determines the order of items placed in the bin.
+
+    Example:
+    - Chromosome: [0.2, 0.7, 0.1, 0.5, 0.3]
+    - Order of items: [3, 1, 5, 2, 4]
+
+    * Last n genes are used to encode the orientation of n items.
+    - Each gene is a random number between 0 and 1.
+    - There are 6 possible orientations for each item: O = [1, 2, 3, 4, 5, 6]
+    - The orientation of item is calculated by: O[ceil(6 * gene)]
+
+    Example:
+    - Chromosome: [0.8, 0.3, 0.6, 0.9, 0.4]
+    - Orientation of items: [5, 2, 4, 6, 3]
+    """
+    def __init__(self, chromosome: List[float]):
+        # Access the unique instance of Configuration class to get global parameters
+        self.cofig = Configuration()
+
+        self.chromosome = chromosome
+        self.fitness = self.evaluate()
+
+    def evaluate(self) -> None:
+        self.fitness = self.cofig.objective_function(self.chromosome)
+
+class Population:
+    def __init__(self):
+        # Access the unique instance of Configuration class to get global parameters
+        self.cofig = Configuration()
+
+        self.n_items = self.cofig.n_items
+        self.n_individuals = self.cofig.n_individuals
+        self.n_elites = self.cofig.n_elites
+        self.n_generations = self.cofig.n_generations
+        self.p_crossover = self.cofig.p_crossover
+        self.p_mutation = self.cofig.p_mutation
+
+        self.n_genes = 2 * self.n_items
+        self.n_mutants = int(self.p_mutation * self.n_individuals)
+        self.n_offsprings = self.n_individuals - self.n_elites - self.n_mutants
+
+        self.individuals = []
+        self.elites = []
+        self.non_elites = []
+        
+    def initialize(self):
+        """
+        - Initialize the population by uniformly sampling the chromosome space.
+        """
+        for _ in range(self.n_individuals):
+            chromosome = np.random.rand(2 * self.n_items)
+            individual = Individual(chromosome, self.function)
+            self.individuals.append(individual)
+
+    def partition(self):
+        """
+        - The population is partitioned into two groups: elite and non-elite based on their fitness.
+        """
+        self.fitnesses = [individual.fitness for individual in self.individuals]
+        indices = np.argsort(self.fitnesses)
+        print(f'Best fitness: {self.fitnesses[indices[0]]}')
+        self.elites = self.individuals[indices[:self.n_elites]]
+        self.non_elites = self.individuals[indices[self.n_elites:]]
+
+    def crossover(self, elite: Individual, non_elite: Individual) -> List[float]:
+        """
+        - Crossover is performed between one elite and one non-elite individual.
+        - Each gene is randomly chosen from either parent with a probability of p_crossover. 
+        """
+
+        offspring = [0] * (self.n_genes)
+
+        for i in range(self.n_genes):
+            if np.random.rand() < self.p_crossover:
+                offspring[i] = elite.chromosome[i]
+            else:
+                offspring[i] = non_elite.chromosome[i]
+
+        return offspring
+    
+    def mating(self):
+        """
+        - Mating is performed between elite and non-elite individuals to generate offsprings.
+        """
+        offsprings: List[Individual] = []
+        for _ in range(self.n_offsprings):
+            elite = np.random.choice(self.elites)
+            non_elite = np.random.choice(self.non_elites)
+            offspring = self.crossover(elite, non_elite)
+            offsprings.append(offspring)
+
+        return offsprings
+    
+    def mutation(self):
+        """
+        - Create entirely new individuals by uniformly sampling to increase diversity.
+        """
+        mutants: List[Individual] = []
+        for _ in range(self.n_mutants):
+            chromosome = np.random.rand(2 * self.n_items)
+            mutant = Individual(chromosome, self.function)
+            mutants.append(mutant)
+            
+        return mutants
+
+class Optimizer:
+    def __init__(self):
+        self.config = Configuration()
+        self.population = Population()
+
+        self.n_generations = self.config.n_generations
+
+    def optimize(self):
+        self.population.initialize()
+        for _ in range(self.n_generations):
+            self.population.partition()
+            offsprings = self.population.mating()
+            mutants = self.population.mutation()
+            self.population.individuals = self.population.elites + offsprings + mutants
+

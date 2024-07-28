@@ -182,10 +182,17 @@ class Generator:
         """
         Delete the generated data file.
         """
-        filename = f'Data/Dataset/{self.n_items}_items_{self.n_bins}_bins_{self.seed}.dat'
+        filename = f'Data/Dataset/{self.n_items}_{self.n_bins}_{self.seed}.dat'
         os.remove(filename)
 
 # Example of using the Generator class
+"""
 for i in range(100):
     generator = Generator(50, 5, seed=i, bin_size=[100, 100, 100])
     generator.generate()
+"""
+
+generator = Generator(20, 2, seed=0, bin_size=[100, 100, 100], n_samples=0)
+generator.generate()
+generator.visualize()
+generator.delete()
