@@ -145,9 +145,4 @@ class Problem:
 
         # Sum of load in first n_bins bins
         fitness = np.sum([bin.load for bin in self.bins[:self.n_bins]])
-        return fitness
-
-
-        
-
-    
+        return fitness    
