@@ -25,6 +25,7 @@ class Generator:
         self.seed: int = seed
         self.bin_size: List[int] = bin_size
         self.items: List[List[Tuple[List[int], List[int]]]] = []
+        self.flat_items: List[Tuple[List[int], List[int]]] = None
         self.total_volume: int = 0
 
         if 'n_samples' in kargs:
@@ -101,8 +102,8 @@ class Generator:
             self.items.append(bin_items)
         
         # Flatten the list of items and reorder randomly
-        flat_items = [item for bin_items in self.items for item in bin_items]
-        random.shuffle(flat_items)
+        self.flat_items = [item for bin_items in self.items for item in bin_items]
+        random.shuffle(self.flat_items)
         
         # Ensure the directory exists
         os.makedirs(os.path.dirname(f'Data/Dataset/'), exist_ok=True)
@@ -115,8 +116,9 @@ class Generator:
             file.write(f'Number of items per bin: {self.n_items}\n')
             file.write(f'Total volume of items: {self.total_volume}\n')
             file.write('Items:\n')
-            for (_, item) in flat_items:
-                file.write(f'{item[0]} {item[1]} {item[2]}\n')
+            for (_, item) in self.flat_items:
+                sample = random.sample(item, 3)
+                file.write(f'{sample[0]} {sample[1]} {sample[2]}\n')
     
     def visualize(self) -> None:
         """
@@ -146,10 +148,9 @@ class Generator:
         ax = fig.add_subplot(111, projection='3d')
 
         # Create a color palette for items
-        flat_items = [item for bin_items in self.items for item in bin_items]
-        colors = sns.color_palette("pastel", len(flat_items))
+        colors = sns.color_palette("pastel", len(self.flat_items))
 
-        for i, (origin, item) in enumerate(flat_items):
+        for i, (origin, item) in enumerate(self.flat_items):
             x0, y0, z0 = origin
             dx, dy, dz = item
             color = colors[i % len(colors)]
