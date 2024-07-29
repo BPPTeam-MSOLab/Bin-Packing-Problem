@@ -27,7 +27,8 @@ class Configuration:
                  n_generations: int = None,
                  p_crossover: float = None,
                  p_mutation: float = None,
-                 problem: Problem = None):
+                 problem: Problem = None,
+                 verbose: bool = False):
         if not hasattr(self, 'initialized'):
             self.objective_function = objective_function
             self.n_items = n_items
@@ -37,6 +38,7 @@ class Configuration:
             self.p_crossover = p_crossover
             self.p_mutation = p_mutation
             self.problem = problem
+            self.verbose = verbose
             self.initialized = True
 
 class Individual:
@@ -82,9 +84,9 @@ class Population:
         self.n_mutants = int(self.p_mutation * self.n_individuals)
         self.n_offsprings = self.n_individuals - self.n_elites - self.n_mutants
 
-        self.individuals = []
-        self.elites = []
-        self.non_elites = []
+        self.individuals: List[Individual] = []
+        self.elites: List[Individual] = []
+        self.non_elites: List[Individual] = []
         
     def initialize(self):
         """
@@ -101,7 +103,6 @@ class Population:
         """
         self.fitnesses = [individual.fitness for individual in self.individuals]
         indices = np.argsort(self.fitnesses)
-        print(f'Best fitness: {self.fitnesses[indices[0]]}')
         self.elites = [self.individuals[i] for i in indices[:self.n_elites]]
         self.non_elites = [self.individuals[i] for i in indices[self.n_elites:]]
 
@@ -157,6 +158,7 @@ class Optimizer:
         self.population.initialize()
         for _ in range(self.n_generations):
             self.population.partition()
+            print(f'Best fitness: {self.population.elites[0].fitness} | Number of used bins: {self.config.problem.used_bins}')
             offsprings = self.population.mating()
             mutants = self.population.mutation()
             self.population.individuals = self.population.elites + offsprings + mutants
@@ -170,7 +172,6 @@ if 11 < 3:
     np.random.seed(0)
     Optimizer().optimize()
 
-
 # Define the objective function to evaluate the fitness of an individual
 
 """
@@ -181,16 +182,11 @@ In this part, we decode the chromosome of an individual as an placement strategy
 
 def evaluate(solution: List[float]) -> float:
     return Configuration().problem.evaluate(solution)
-
-# TEST THE OBJECTIVE FUNCTION
-if 11 < 3:
-    np.random.seed(0)
-    problem = Problem('Data/Dataset/50_5_1.dat')
-    solution = np.random.rand(2 * problem.n_items * problem.n_bins)
-    fitness = evaluate(solution, problem)
         
-if 11 < 3:
+if 1 < 3:
     def solve(path):
         problem = Problem(path)
-        Configuration(evaluate, problem.total_items, 10, 2, 10, 0.8, 0.1, problem)
+        Configuration(evaluate, problem.total_items, 100, 10, 10, 0.8, 0.1, problem)
         Optimizer().optimize()
+
+    solve('Data/Dataset/20_2_0.dat')

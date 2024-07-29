@@ -6,21 +6,75 @@ class Problem:
     class Bin:
         def __init__(self, size: Tuple[int]):
             self.size = size
-            self.EMSs: List[Tuple[int]] = [(0, 0, 0), size]
+            self.EMSs: List[List[Tuple[int]]] = [
+                [(0, 0, 0), size] # Each EMS is a list of 2 tuples, the first one is always like this
+            ]
             self.load = 0
 
         # Return the EMS is chosen to place the item based on Distance to Front-Top-Right Corner (FTR) rule
         def choose(self, item: Tuple[int]) -> Tuple[int]:
-            return None
+            max_distance = -1
+            selected_EMS = None
+            for EMS in self.EMSs:
+                if self.fit(item, EMS):
+                    x, y, z = EMS[0][0] + item[0], EMS[0][1] + item[1], EMS[0][2] + item[2]
+                    distance = (self.size[0] - x) ** 2 + (self.size[1] - y) ** 2 + (self.size[2] - z) ** 2
+                    if distance > max_distance:
+                        max_distance = distance
+                        selected_EMS = EMS
+            return selected_EMS
+        
+        @staticmethod
+        def fit(item: Tuple[int], EMS: List[Tuple[int]]) -> bool:
+            for i in range(3):
+                if EMS[0][i] + item[i] > EMS[1][i]:
+                    return False
+            return True
+
+        @staticmethod
+        def overlapped(EMS1: List[Tuple[int]], EMS2: List[Tuple[int]]) -> bool:
+            return np.all(EMS1[0] < EMS2[1]) and np.all(EMS1[1] > EMS2[0]) # EMS1 is overlapped with EMS2
+        
+        @staticmethod
+        def inscribed(EMS1: List[Tuple[int]], EMS2: List[Tuple[int]]) -> bool:
+            return np.all(EMS1[0] >= EMS2[0]) and np.all(EMS1[1] <= EMS2[1]) # EMS1 is inscribed in EMS2
 
         # Update EMSs after placing the item into the chosen EMS
-        def update(self, item: Tuple[int], EMS: Tuple[int]) -> None:
+        def update(self, item: Tuple[int], selected_EMS: Tuple[int]) -> None:
+            ems = [selected_EMS[0], (selected_EMS[0][0] + item[0], selected_EMS[0][1] + item[1], selected_EMS[0][2] + item[2])]
+
+            for EMS in self.EMSs:
+                if self.overlapped(ems, EMS):
+                    self.EMSs.remove(EMS)
+
+                    # New EMSs
+                    x1, y1, z1 = EMS[0]
+                    x2, y2, z2 = EMS[1]
+                    x3, y3, z3 = ems[1]
+
+                    new_EMSs = [
+                        [(x3, y1, z1), (x2, y2, z2)],
+                        [(x1, y3, z1), (x2, y2, z2)],
+                        [(x1, y1, z3), (x2, y2, z2)],
+                    ]
+
+                    for new_EMS in new_EMSs:
+                        isValid = True
+                        for EMS in self.EMSs:
+                            if self.inscribed(new_EMS, EMS):
+                                isValid = False
+                                break
+
+                        if isValid:
+                            self.EMSs.append(new_EMS)
+
             self.load += item[0] * item[1] * item[2]
-            pass
 
     def __init__(self, path: str):
         self.path = path
         self.load_data()
+
+        self.used_bins = self.n_bins
         self.total_items = self.n_items * self.n_bins
         self.bins = [self.Bin(self.bin_size) for _ in range(self.n_bins)] 
 
@@ -63,7 +117,7 @@ class Problem:
 
         for i in range(self.total_items):
             item = self.items[i]
-            orientation = self.get_orientation(self.solution[self.total_items + i])
+            orientation = self.get_orientation(solution[self.total_items + i])
             size = self.get_size(item, orientation)
             self.items[orders[i]] = size
 
@@ -74,7 +128,7 @@ class Problem:
             selected_bin = None
             selected_EMS = None
 
-            for i, bin in enumerate(self.bins):
+            for bin in self.bins:
                 EMS = bin.choose(item)
                 if EMS is not None:
                     selected_bin = bin
@@ -82,11 +136,12 @@ class Problem:
                     break
 
             if selected_bin is None:
+                self.used_bins += 1
                 self.bins.append(self.Bin(self.bin_size))
                 selected_bin = self.bins[-1]
                 selected_EMS = selected_bin.EMSs[0]
 
-            self.bins[i].update(item, selected_EMS)
+            selected_bin.update(item, selected_EMS)
 
         # Sum of load in first n_bins bins
         fitness = np.sum([bin.load for bin in self.bins[:self.n_bins]])
