@@ -186,12 +186,14 @@ class Generator:
         os.remove(filename)
 
 # Example of using the Generator class
-"""
-for i in range(100):
-    generator = Generator(50, 5, seed=i, bin_size=[100, 100, 100])
-    generator.generate()
-"""
+if 11 < 3:
+    for i in range(100):
+        generator = Generator(50, 5, seed=i, bin_size=[100, 100, 100])
+        generator.generate()
+        generator.delete()
 
-generator = Generator(20, 2, seed=0, bin_size=[100, 100, 100], n_samples=0)
-generator.generate()
-generator.visualize()
+if 11 < 3:
+    generator = Generator(20, 2, seed=0, bin_size=[100, 100, 100], n_samples=0)
+    generator.generate()
+    generator.visualize()
+    generator.delete()

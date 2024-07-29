@@ -1,6 +1,6 @@
 import numpy as np
 from typing import List, Tuple, Callable
-from Problem import Problem
+from Problem import Problem, Placement
 from functools import partial
 
 """
@@ -156,9 +156,10 @@ class Optimizer:
 
     def optimize(self):
         self.population.initialize()
-        for _ in range(self.n_generations):
+        for generation in range(self.n_generations):
             self.population.partition()
-            print(f'Best fitness: {self.population.elites[0].fitness} | Number of used bins: {self.config.problem.used_bins}')
+            if self.config.verbose and generation % 10 == 0:
+                print(f'Best fitness: {self.population.elites[0].fitness} | Number of bins used: {self.config.problem.used_bins} | Loads: {self.config.problem.loads}')
             offsprings = self.population.mating()
             mutants = self.population.mutation()
             self.population.individuals = self.population.elites + offsprings + mutants
@@ -180,13 +181,16 @@ In this part, we decode the chromosome of an individual as an placement strategy
 - We choose the EMS for an item based on Distance to the Front-Top-Right Corner (FTR) rule.
 """
 
-def evaluate(solution: List[float]) -> float:
-    return Configuration().problem.evaluate(solution)
+def evaluate(solution: List[float], problem: Problem) -> float:
+    placement = Placement(problem)
+    return placement.evaluate(solution)
         
 if 1 < 3:
-    def solve(path):
+    def solve(path, seed=10):
+        np.random.seed(seed)
         problem = Problem(path)
-        Configuration(evaluate, problem.total_items, 100, 10, 10, 0.8, 0.1, problem)
+        objective_function = partial(evaluate, problem)
+        Configuration(objective_function, problem.total_items, 100, 10, 1000, 0.8, 0.3, problem, True)
         Optimizer().optimize()
 
-    solve('Data/Dataset/20_2_0.dat')
+    solve('Data/Dataset/test.dat', 1)
