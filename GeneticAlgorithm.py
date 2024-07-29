@@ -26,7 +26,8 @@ class Configuration:
                  n_elites: int = None,
                  n_generations: int = None,
                  p_crossover: float = None,
-                 p_mutation: float = None):
+                 p_mutation: float = None,
+                 problem: Problem = None):
         if not hasattr(self, 'initialized'):
             self.objective_function = objective_function
             self.n_items = n_items
@@ -35,6 +36,7 @@ class Configuration:
             self.n_generations = n_generations
             self.p_crossover = p_crossover
             self.p_mutation = p_mutation
+            self.problem = problem
             self.initialized = True
 
 class Individual:
@@ -164,48 +166,21 @@ if 11 < 3:
     def objective_function(chromosome: List[float]) -> float:
         return sum(chromosome)
 
-    config = Configuration(objective_function, 5, 10, 2, 10, 0.8, 0.1)
-
+    Configuration(objective_function, 5, 10, 2, 10, 0.8, 0.1)
     np.random.seed(0)
-    optimizer = Optimizer()
-    optimizer.optimize()
+    Optimizer().optimize()
 
 
 # Define the objective function to evaluate the fitness of an individual
 
 """
 In this part, we decode the chromosome of an individual as an placement strategy to calculate its fitness.
-
-* First, 
+- Each bin maintains a list of Empty Maximal Spaces (EMSs) to store the remaining space in the bin.
+- We choose the EMS for an item based on Distance to the Front-Top-Right Corner (FTR) rule.
 """
 
-def evaluate(solution: List[float], problem: Problem) -> float:
-    total_items = problem.n_items * problem.n_bins
-
-    if len(solution) != 2 * total_items:
-        raise ValueError('Chromosome length does not match the number of items and bins')
-    
-    def get_orientation(gene: float) -> int:
-        return int(np.ceil(6 * gene)) # 1 <= orientation <= 6
-    
-    def get_size(item: Tuple[int], orientation: int) -> Tuple[int]:
-        x, y, z = item
-        if   orientation == 1: return (x, y, z)
-        elif orientation == 2: return (x, z, y)
-        elif orientation == 3: return (y, x, z)
-        elif orientation == 4: return (y, z, x)
-        elif orientation == 5: return (z, x, y)
-        elif orientation == 6: return (z, y, x)
-
-    orders = np.argsort(solution[:total_items])
-    sequence = [0] * total_items
-    
-    for i in range(total_items):
-        item = problem.items[i]
-        orientation = get_orientation(solution[total_items + i])
-        size = get_size(item, orientation)
-        order = orders[i]
-        sequence[order] = size # Sequence is a list of sizes of items in the order of placement
+def evaluate(solution: List[float]) -> float:
+    return Configuration().problem.evaluate(solution)
 
 # TEST THE OBJECTIVE FUNCTION
 if 11 < 3:
@@ -214,10 +189,8 @@ if 11 < 3:
     solution = np.random.rand(2 * problem.n_items * problem.n_bins)
     fitness = evaluate(solution, problem)
         
-
-if 1 < 3:
+if 11 < 3:
     def solve(path):
         problem = Problem(path)
-        objective_function = partial(evaluate, problem)
-        Configuration(objective_function, problem.n_items, 10, 2, 10, 0.8, 0.1)
+        Configuration(evaluate, problem.total_items, 10, 2, 10, 0.8, 0.1, problem)
         Optimizer().optimize()
