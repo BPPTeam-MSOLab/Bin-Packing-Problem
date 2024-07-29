@@ -174,7 +174,6 @@ if 11 < 3:
     Optimizer().optimize()
 
 # Define the objective function to evaluate the fitness of an individual
-
 """
 In this part, we decode the chromosome of an individual as an placement strategy to calculate its fitness.
 - Each bin maintains a list of Empty Maximal Spaces (EMSs) to store the remaining space in the bin.
@@ -189,8 +188,8 @@ if 1 < 3:
     def solve(path, seed=10):
         np.random.seed(seed)
         problem = Problem(path)
-        objective_function = partial(evaluate, problem)
-        Configuration(objective_function, problem.total_items, 100, 10, 1000, 0.8, 0.3, problem, True)
+        objective_function = partial(evaluate, problem=problem)
+        Configuration(objective_function, problem.total_items, 100, 5, 1000, 0.8, 0.3, problem, True)
         Optimizer().optimize()
 
-    solve('Data/Dataset/test.dat', 1)
+    solve('Data/Dataset/20_2_0.dat', 2)

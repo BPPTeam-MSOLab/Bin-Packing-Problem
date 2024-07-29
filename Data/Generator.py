@@ -192,8 +192,8 @@ if 11 < 3:
         generator.generate()
         generator.delete()
 
-if 11 < 3:
-    generator = Generator(20, 2, seed=0, bin_size=[100, 100, 100], n_samples=0)
+if 1 < 3:
+    generator = Generator(20, 2, seed=0, bin_size=[10, 10, 10], n_samples=0)
     generator.generate()
     generator.visualize()
-    generator.delete()
+    # generator.delete()

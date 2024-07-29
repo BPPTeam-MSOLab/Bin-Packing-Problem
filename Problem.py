@@ -51,10 +51,10 @@ class Placement:
         @staticmethod
         def fit(item: Tuple[int], EMS: List[Tuple[int]]) -> bool:
             for i in range(3):
-                if EMS[0][i] + item[i] > EMS[1][i]:
-                    return False
+                if EMS[0][i] + item[i] > EMS[1][i]: return False
             return True
 
+        """
         @staticmethod
         def overlapped(EMS1: List[Tuple[int]], EMS2: List[Tuple[int]]) -> bool:
             return np.all(EMS1[0] < EMS2[1]) and np.all(EMS1[1] > EMS2[0]) # EMS1 is overlapped with EMS2
@@ -62,36 +62,28 @@ class Placement:
         @staticmethod
         def inscribed(EMS1: List[Tuple[int]], EMS2: List[Tuple[int]]) -> bool:
             return np.all(EMS1[0] >= EMS2[0]) and np.all(EMS1[1] <= EMS2[1]) # EMS1 is inscribed in EMS2
+        """
 
         # Update EMSs after placing the item into the chosen EMS
         def update(self, item: Tuple[int], selected_EMS: Tuple[int]) -> None:
-            ems = [selected_EMS[0], (selected_EMS[0][0] + item[0], selected_EMS[0][1] + item[1], selected_EMS[0][2] + item[2])]
+            x1, y1, z1 = selected_EMS[0]
+            x2, y2, z2 = x1 + item[0], y1 + item[1], z1 + item[2]
+            x3, y3, z3 = selected_EMS[1]
 
-            for EMS in self.EMSs:
-                if self.overlapped(ems, EMS):
-                    self.EMSs.remove(EMS)
+            new_EMSs = [
+                [(x2, y1, z1), (x3, y3, z3)],
+                [(x1, y2, z1), (x3, y3, z3)],
+                [(x1, y1, z2), (x3, y3, z3)]
+            ]
 
-                    # New EMSs
-                    x1, y1, z1 = EMS[0]
-                    x2, y2, z2 = EMS[1]
-                    x3, y3, z3 = ems[1]
+            self.EMSs.remove(selected_EMS)
+            for EMS in new_EMSs:
+                for i in range(3):
+                    if EMS[0][i] == EMS[1][i]:
+                        new_EMSs.remove(EMS)
+                        break
 
-                    new_EMSs = [
-                        [(x3, y1, z1), (x2, y2, z2)],
-                        [(x1, y3, z1), (x2, y2, z2)],
-                        [(x1, y1, z3), (x2, y2, z2)],
-                    ]
-
-                    for new_EMS in new_EMSs:
-                        isValid = True
-                        for EMS in self.EMSs:
-                            if self.inscribed(new_EMS, EMS):
-                                isValid = False
-                                break
-
-                        if isValid:
-                            self.EMSs.append(new_EMS)
-
+            self.EMSs += new_EMSs
             self.load += item[0] * item[1] * item[2]
 
     def __init__(self, problem: Problem):
@@ -138,13 +130,16 @@ class Placement:
         for item in self.items:
             selected_bin = None
             selected_EMS = None
+            i = 0
 
-            for bin in self.bins:
+            while i < len(self.bins):
+                bin = self.bins[i]
                 EMS = bin.choose(item)
                 if EMS is not None:
                     selected_bin = bin
                     selected_EMS = EMS
                     break
+                i += 1
 
             if selected_bin is None:
                 self.used_bins += 1
@@ -163,3 +158,10 @@ class Placement:
             self.problem.loads = [bin.load for bin in self.bins]
     
         return fitness # To maximize the fitness
+    
+if 11 < 3:
+    problem = Problem('Data/Dataset/test.dat')
+    placement = Placement(problem)
+    solution = np.random.rand(2 * problem.total_items)
+    fitness = placement.evaluate(solution)
+    print(f'Fitness: {fitness} | Used bins: {placement.used_bins} | Loads: {placement.problem.loads}')
