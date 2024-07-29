@@ -192,4 +192,4 @@ if 1 < 3:
         Configuration(objective_function, problem.total_items, 100, 10, 1000, 0.5, 0.3, problem, True)
         Optimizer().optimize()
 
-    solve('Data/Dataset/20_2_0.dat', 0)
+    solve('Data/Dataset/20_1_1.dat', 0)

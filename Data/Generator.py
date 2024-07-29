@@ -137,7 +137,7 @@ class Generator:
                 [vertices[j] for j in [4, 5, 6, 7]]
             ]
             
-            ax.add_collection3d(Poly3DCollection(faces, facecolors=color, linewidths=.5, edgecolors='k', alpha=.75))
+            ax.add_collection3d(Poly3DCollection(faces, facecolors=color, linewidths=.3, edgecolors='k', alpha=.5, zsort='min'))
 
         if not self.items:
             raise ValueError('Items have not been generated yet')
@@ -147,7 +147,7 @@ class Generator:
 
         # Create a color palette for items
         flat_items = [item for bin_items in self.items for item in bin_items]
-        colors = sns.color_palette("Set3", len(flat_items))
+        colors = sns.color_palette("pastel", len(flat_items))
 
         for i, (origin, item) in enumerate(flat_items):
             x0, y0, z0 = origin
@@ -174,7 +174,7 @@ class Generator:
             f'Number of items per bin: {self.n_items}\n'
             f'Total volume of items: {self.total_volume}'
         )
-        plt.figtext(.75, .5, info_text, fontsize=8, ha='left', va='center', bbox=dict(facecolor='white', edgecolor='black'))
+        plt.figtext(.8, .5, info_text, fontsize=8, ha='left', va='center', bbox=dict(facecolor='white', edgecolor='black'))
 
         plt.show()
 
@@ -193,7 +193,7 @@ if 11 < 3:
         generator.delete()
 
 if 1 < 3:
-    generator = Generator(20, 2, seed=0, bin_size=[10, 10, 10], n_samples=0)
+    generator = Generator(20, 1, seed=1, bin_size=[10, 10, 10], n_samples=10)
     generator.generate()
     generator.visualize()
     # generator.delete()

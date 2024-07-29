@@ -41,7 +41,7 @@ class Placement:
             max_distance = -1
             selected_EMS = None
             for EMS in self.EMSs:
-                if self.fit(item, EMS):
+                if self.fit(item, EMS) and 1: # One more condition to check overlapped 
                     x, y, z = EMS[0][0] + item[0], EMS[0][1] + item[1], EMS[0][2] + item[2]
                     distance = (self.size[0] - x) ** 2 + (self.size[1] - y) ** 2 + (self.size[2] - z) ** 2
                     if distance > max_distance:
@@ -165,16 +165,9 @@ class Placement:
 
         return fitness # To maximize the fitness
     
-if 11 < 3:
+if 1 < 3:
     problem = Problem('Data/Dataset/test.dat')
     placement = Placement(problem)
     solution = np.random.rand(2 * problem.total_items)
     fitness = placement.evaluate(solution)
     print(f'Fitness: {fitness} | Used bins: {placement.used_bins} | Loads: {placement.problem.loads}')
-
-if 11 < 3:
-    list = [1, 2, 3]
-    for i in list:
-        print(i)
-        if i == 2:
-            list.remove(3)
