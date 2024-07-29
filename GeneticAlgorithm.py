@@ -158,8 +158,8 @@ class Optimizer:
         self.population.initialize()
         for generation in range(self.n_generations):
             self.population.partition()
-            if self.config.verbose and generation % 10 == 0:
-                print(f'Best fitness: {self.population.elites[0].fitness} | Number of bins used: {self.config.problem.used_bins} | Loads: {self.config.problem.loads}')
+            if self.config.verbose and generation % 100 == 0:
+                print(f'Best fitness: {self.config.problem.best_fitness} | Number of bins used: {self.config.problem.used_bins} | Loads: {self.config.problem.loads}')
             offsprings = self.population.mating()
             mutants = self.population.mutation()
             self.population.individuals = self.population.elites + offsprings + mutants
@@ -189,7 +189,7 @@ if 1 < 3:
         np.random.seed(seed)
         problem = Problem(path)
         objective_function = partial(evaluate, problem=problem)
-        Configuration(objective_function, problem.total_items, 100, 5, 1000, 0.8, 0.3, problem, True)
+        Configuration(objective_function, problem.total_items, 100, 10, 1000, 0.5, 0.3, problem, True)
         Optimizer().optimize()
 
-    solve('Data/Dataset/20_2_0.dat', 2)
+    solve('Data/Dataset/20_2_0.dat', 0)

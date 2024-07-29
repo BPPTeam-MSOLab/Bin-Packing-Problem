@@ -8,6 +8,7 @@ class Problem:
         self.total_items = self.n_items * self.n_bins
         self.used_bins = self.total_items
         self.loads = None
+        self.best_fitness = np.inf
 
     def load_data(self):
         with open(self.path, 'r') as file:
@@ -58,11 +59,10 @@ class Placement:
         @staticmethod
         def overlapped(EMS1: List[Tuple[int]], EMS2: List[Tuple[int]]) -> bool:
             return np.all(EMS1[0] < EMS2[1]) and np.all(EMS1[1] > EMS2[0]) # EMS1 is overlapped with EMS2
-        
+        """
         @staticmethod
         def inscribed(EMS1: List[Tuple[int]], EMS2: List[Tuple[int]]) -> bool:
             return np.all(EMS1[0] >= EMS2[0]) and np.all(EMS1[1] <= EMS2[1]) # EMS1 is inscribed in EMS2
-        """
 
         # Update EMSs after placing the item into the chosen EMS
         def update(self, item: Tuple[int], selected_EMS: Tuple[int]) -> None:
@@ -78,12 +78,20 @@ class Placement:
 
             self.EMSs.remove(selected_EMS)
             for EMS in new_EMSs:
+                isValid = True
                 for i in range(3):
-                    if EMS[0][i] == EMS[1][i]:
-                        new_EMSs.remove(EMS)
+                    if EMS[0][i] >= EMS[1][i]:
+                        isValid = False
                         break
 
-            self.EMSs += new_EMSs
+                for other_EMS in self.EMSs:
+                    if self.inscribed(EMS, other_EMS):
+                        isValid = False
+                        break
+
+                if isValid:
+                    self.EMSs.append(EMS)
+
             self.load += item[0] * item[1] * item[2]
 
     def __init__(self, problem: Problem):
@@ -94,9 +102,10 @@ class Placement:
         self.total_volume = problem.total_volume
         self.items = problem.items
 
-        self.used_bins = self.n_bins
+        self.used_bins = 1
         self.total_items = self.n_items * self.n_bins
-        self.bins = [self.Bin(self.bin_size) for _ in range(self.n_bins)]
+        self.bins = [self.Bin(self.bin_size)]
+        self.loads = None
 
     @staticmethod
     def get_orientation(gene: float) -> int:
@@ -130,33 +139,30 @@ class Placement:
         for item in self.items:
             selected_bin = None
             selected_EMS = None
-            i = 0
 
-            while i < len(self.bins):
-                bin = self.bins[i]
+            for bin in self.bins:
                 EMS = bin.choose(item)
                 if EMS is not None:
                     selected_bin = bin
                     selected_EMS = EMS
-                    break
-                i += 1
 
-            if selected_bin is None:
-                self.used_bins += 1
-                self.bins.append(self.Bin(self.bin_size))
-                selected_bin = self.bins[-1]
-                selected_EMS = selected_bin.EMSs[0]
+                if selected_bin is None:
+                    self.used_bins += 1
+                    self.bins.append(self.Bin(self.bin_size))
+                    selected_bin = self.bins[-1]
+                    selected_EMS = selected_bin.EMSs[0]
 
             selected_bin.update(item, selected_EMS)
 
-        # Sum of load in first n_bins bins
-        least_load = np.min([bin.load for bin in self.bins]) / (self.bin_size[0] * self.bin_size[1] * self.bin_size[2])
+        self.loads = [bin.load for bin in self.bins]
+        least_load = np.min(self.loads) / (self.bin_size[0] * self.bin_size[1] * self.bin_size[2])
         fitness = self.used_bins + least_load
 
-        if self.used_bins < self.problem.used_bins:
+        if fitness < self.problem.best_fitness:
             self.problem.used_bins = self.used_bins
-            self.problem.loads = [bin.load for bin in self.bins]
-    
+            self.problem.best_fitness = fitness
+            self.problem.loads = self.loads
+
         return fitness # To maximize the fitness
     
 if 11 < 3:
@@ -165,3 +171,10 @@ if 11 < 3:
     solution = np.random.rand(2 * problem.total_items)
     fitness = placement.evaluate(solution)
     print(f'Fitness: {fitness} | Used bins: {placement.used_bins} | Loads: {placement.problem.loads}')
+
+if 11 < 3:
+    list = [1, 2, 3]
+    for i in list:
+        print(i)
+        if i == 2:
+            list.remove(3)
