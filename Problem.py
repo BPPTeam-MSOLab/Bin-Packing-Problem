@@ -34,6 +34,7 @@ class Placement:
             self.EMSs: List[List[Tuple[int]]] = [
                 [(0, 0, 0), size] # Each EMS is a list of 2 tuples, the first one is always like this
             ]
+            self.items: List[List[Tuple[int]]] = []
             self.load = 0
 
         # Return the EMS is chosen to place the item based on Distance to Front-Top-Right Corner (FTR) rule
@@ -41,7 +42,8 @@ class Placement:
             max_distance = -1
             selected_EMS = None
             for EMS in self.EMSs:
-                if self.fit(item, EMS) and 1: # One more condition to check overlapped 
+                # print(f'Fit: {self.fit(item, EMS)} | Check: {self.check(item, EMS)}')
+                if self.fit(item, EMS) and self.check(item, EMS): 
                     x, y, z = EMS[0][0] + item[0], EMS[0][1] + item[1], EMS[0][2] + item[2]
                     distance = (self.size[0] - x) ** 2 + (self.size[1] - y) ** 2 + (self.size[2] - z) ** 2
                     if distance > max_distance:
@@ -49,26 +51,37 @@ class Placement:
                         selected_EMS = EMS
             return selected_EMS
         
+        # Check if the item can be placed into the chosen EMS
+        def check(self, item: List[Tuple[int]], EMS: List[Tuple[int]]) -> bool:
+            x1, y1, z1 = EMS[0]
+            x2, y2, z2 = x1 + item[0], y1 + item[1], z1 + item[2]
+            space = [(x1, y1, z1), (x2, y2, z2)]
+            if not self.items: return True
+            for other_item in self.items:
+                if self.overlapped(space, other_item): return False # If the space is overlapped with other items
+            return True
+        
         @staticmethod
         def fit(item: Tuple[int], EMS: List[Tuple[int]]) -> bool:
             for i in range(3):
                 if EMS[0][i] + item[i] > EMS[1][i]: return False
             return True
-
-        """
+        
         @staticmethod
-        def overlapped(EMS1: List[Tuple[int]], EMS2: List[Tuple[int]]) -> bool:
-            return np.all(EMS1[0] < EMS2[1]) and np.all(EMS1[1] > EMS2[0]) # EMS1 is overlapped with EMS2
-        """
+        def overlapped(item1: List[Tuple[int]], item2: List[Tuple[int]]) -> bool:
+            return np.all(np.array(item1[0]) < np.array(item2[1])) and np.all(np.array(item1[1]) > np.array(item2[0])) # EMS1 and EMS2 are overlapped
+        
         @staticmethod
         def inscribed(EMS1: List[Tuple[int]], EMS2: List[Tuple[int]]) -> bool:
-            return np.all(EMS1[0] >= EMS2[0]) and np.all(EMS1[1] <= EMS2[1]) # EMS1 is inscribed in EMS2
+            return np.all(np.array(EMS1[0]) >= np.array(EMS2[0])) and np.all(np.array(EMS1[1]) <= np.array(EMS2[1])) # EMS1 is inscribed in EMS2
 
         # Update EMSs after placing the item into the chosen EMS
         def update(self, item: Tuple[int], selected_EMS: Tuple[int]) -> None:
             x1, y1, z1 = selected_EMS[0]
             x2, y2, z2 = x1 + item[0], y1 + item[1], z1 + item[2]
             x3, y3, z3 = selected_EMS[1]
+
+            self.items.append([(x1, y1, z1), (x2, y2, z2)])
 
             new_EMSs = [
                 [(x2, y1, z1), (x3, y3, z3)],
@@ -142,6 +155,7 @@ class Placement:
 
             for bin in self.bins:
                 EMS = bin.choose(item)
+                # print(f'Item: {item} | Selected EMS: {EMS}')
                 if EMS is not None:
                     selected_bin = bin
                     selected_EMS = EMS
@@ -152,7 +166,10 @@ class Placement:
                     selected_bin = self.bins[-1]
                     selected_EMS = selected_bin.EMSs[0]
 
+            print(f'Item: {item} | Selected EMS: {selected_EMS} | Bin index: {self.bins.index(selected_bin)}')  
             selected_bin.update(item, selected_EMS)
+            print(f'Updated EMSs: {selected_bin.EMSs}')
+            # print(f'Item: {item} | EMSs: {selected_bin.EMSs} | Bin index: {self.bins.index(selected_bin)}')
 
         self.loads = [bin.load for bin in self.bins]
         least_load = np.min(self.loads) / (self.bin_size[0] * self.bin_size[1] * self.bin_size[2])
@@ -165,8 +182,16 @@ class Placement:
 
         return fitness # To maximize the fitness
     
-if 1 < 3:
+if 11 < 3:
     problem = Problem('Data/Dataset/test.dat')
+    placement = Placement(problem)
+    solution = np.random.rand(2 * problem.total_items)
+    fitness = placement.evaluate(solution)
+    print(f'Fitness: {fitness} | Used bins: {placement.used_bins} | Loads: {placement.problem.loads}')
+
+if 1 < 3:
+    np.random.seed(0)
+    problem = Problem('Data/Dataset/20_1_1.dat')
     placement = Placement(problem)
     solution = np.random.rand(2 * problem.total_items)
     fitness = placement.evaluate(solution)
