@@ -1,6 +1,6 @@
 import numpy as np
 from typing import List, Tuple, Callable
-from Problem import Problem, Placement
+from problem import Problem, Placement
 from functools import partial
 from tqdm import tqdm
 
