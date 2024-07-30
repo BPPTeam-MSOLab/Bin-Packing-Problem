@@ -169,15 +169,6 @@ class Optimizer:
             mutants = self.population.mutation()
             self.population.individuals = self.population.elites + offsprings + mutants
 
-# TEST THE GENETIC ALGORITHM
-if 11 < 3:
-    def objective_function(chromosome: List[float]) -> float:
-        return sum(chromosome)
-
-    Configuration(objective_function, 5, 10, 2, 10, 0.8, 0.1)
-    np.random.seed(0)
-    Optimizer().optimize()
-
 # Define the objective function to evaluate the fitness of an individual
 """
 In this part, we decode the chromosome of an individual as an placement strategy to calculate its fitness.
