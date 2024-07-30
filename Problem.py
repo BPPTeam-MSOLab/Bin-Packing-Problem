@@ -1,5 +1,9 @@
-from typing import List, Tuple, Callable, Optional
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from typing import List, Tuple, Callable, Optional
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 class Problem:
     def __init__(self, path: str):
@@ -9,6 +13,7 @@ class Problem:
         self.used_bins = self.total_items
         self.loads = None
         self.best_fitness = np.inf
+        self.solution: List[List[List[Tuple[int], Tuple[int]]]] = None
 
     def load_data(self):
         with open(self.path, 'r') as file:
@@ -26,6 +31,68 @@ class Problem:
 
         print(f'Loaded data from {self.path}')
         print(f'Problem: {self.n_items} items | {self.n_bins} bins | {self.bin_size} | {self.total_volume}')
+
+    def visualize(self):
+        if not self.solution:
+            raise ValueError('No solution found')
+        
+        def plot_box(ax, x0: int, y0: int, z0: int, x1: int, y1: int, z1: int, color) -> None:
+            dx, dy, dz = x1 - x0, y1 - y0, z1 - z0
+            vertices = [
+                [x0, y0, z0], [x0 + dx, y0, z0], [x0 + dx, y0 + dy, z0], [x0, y0 + dy, z0],
+                [x0, y0, z0 + dz], [x0 + dx, y0, z0 + dz], [x0 + dx, y0 + dy, z0 + dz], [x0, y0 + dy, z0 + dz]
+            ]
+            
+            faces = [
+                [vertices[j] for j in [0, 1, 5, 4]],
+                [vertices[j] for j in [7, 6, 2, 3]],
+                [vertices[j] for j in [0, 3, 7, 4]],
+                [vertices[j] for j in [1, 2, 6, 5]],
+                [vertices[j] for j in [0, 1, 2, 3]],
+                [vertices[j] for j in [4, 5, 6, 7]]
+            ]
+            
+            poly3d = Poly3DCollection(faces, facecolors=color, linewidths=0.5, edgecolors='k', alpha=0.2, zsort='average')
+            ax.add_collection3d(poly3d)
+
+        fig = plt.figure(figsize=(9, 5))
+        ax = fig.add_subplot(111, projection='3d')
+
+        # Create a color palette for items
+        flat_items = [item for bin_items in self.solution for item in bin_items]
+        colors = sns.color_palette("Set3", len(flat_items))
+
+        item_count = 0
+        for bin_idx, bin_items in enumerate(self.solution):
+            bin_origin_x = bin_idx * self.bin_size[0]
+            for item in bin_items:
+                (x0, y0, z0), (x1, y1, z1) = item
+                x0 += bin_origin_x
+                x1 += bin_origin_x
+                color = colors[item_count % len(colors)]
+                plot_box(ax, x0, y0, z0, x1, y1, z1, color)
+                item_count += 1
+
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
+
+        # Set limits for the axes
+        ax.set_xlim([0, self.bin_size[0] * self.used_bins])
+        ax.set_ylim([0, self.bin_size[1]])
+        ax.set_zlim([0, self.bin_size[2]])
+
+        ax.title.set_text('3D Bin Packing Visualization')
+        ax.set_box_aspect([self.bin_size[0] * self.used_bins, self.bin_size[1], self.bin_size[2]])
+        
+        # Add a legend with information
+        info_text = (
+            f'Bin size: {self.bin_size}\n'
+            f'Number of bins: {self.used_bins}'
+        )
+        plt.figtext(0.75, 0.5, info_text, fontsize=8, ha='left', va='center', bbox=dict(facecolor='white', edgecolor='black'))
+
+        plt.show()
     
 class Placement:
     class Bin:
@@ -186,6 +253,7 @@ class Placement:
             self.problem.used_bins = self.used_bins
             self.problem.best_fitness = fitness
             self.problem.loads = self.loads
+            self.problem.solution = [bin.items for bin in self.bins]
 
         return fitness # To maximize the fitness
     
@@ -204,3 +272,4 @@ if 11 < 3:
     solution = np.random.rand(2 * problem.total_items)
     fitness = placement.evaluate(solution)
     print(f'Fitness: {fitness} | Used bins: {placement.used_bins} | Loads: {placement.problem.loads}')
+    problem.visualize()

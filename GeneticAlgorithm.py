@@ -148,17 +148,22 @@ class Population:
         return mutants
 
 class Optimizer:
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.config = Configuration()
         self.population = Population()
 
         self.n_generations = self.config.n_generations
 
+        if 'frequency' in kwargs:
+            self.frequency = kwargs['frequency']
+        else:
+            self.frequency = 100
+
     def optimize(self):
         self.population.initialize()
         for generation in range(self.n_generations):
             self.population.partition()
-            if self.config.verbose and generation % 100 == 0:
+            if self.config.verbose and generation % self.frequency == 0:
                 print(f'Best fitness: {self.config.problem.best_fitness} | Number of bins used: {self.config.problem.used_bins} | Loads: {self.config.problem.loads}')
             offsprings = self.population.mating()
             mutants = self.population.mutation()
@@ -189,7 +194,8 @@ if 1 < 3:
         np.random.seed(seed)
         problem = Problem(path)
         objective_function = partial(evaluate, problem=problem)
-        Configuration(objective_function, problem.total_items, 100, 10, 1000, 0.5, 0.3, problem, True)
-        Optimizer().optimize()
+        Configuration(objective_function, problem.total_items, 100, 10, 11, 0.5, 0.3, problem, True)
+        Optimizer(frequency=10).optimize()
+        problem.visualize()
 
     solve('Data/Dataset/20_1_1.dat', 0)
