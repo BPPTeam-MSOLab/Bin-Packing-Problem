@@ -42,6 +42,12 @@ class Configuration:
             self.verbose = verbose
             self.initialized = True
 
+    @classmethod
+    def reset(cls):
+        if cls._instance:
+            cls._instance.initialized = False
+        cls._instance = None
+
 class Individual:
     """
     We use Random-Key Representation to encode the chromosome of an individual.
