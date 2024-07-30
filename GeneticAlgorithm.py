@@ -184,7 +184,7 @@ def evaluate(solution: List[float], problem: Problem) -> float:
     placement = Placement(problem)
     return placement.evaluate(solution)
         
-if 11 < 3:
+if 1 < 3:
     def solve(path, seed=10):
         np.random.seed(seed)
         problem = Problem(path)

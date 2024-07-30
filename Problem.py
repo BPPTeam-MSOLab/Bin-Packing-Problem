@@ -140,10 +140,13 @@ class Placement:
         
         orders = np.argsort(solution[:self.total_items])
 
+        copy = self.items.copy()
+
         for i in range(self.total_items):
-            item = self.items[i]
+            item = copy[i]
             orientation = self.get_orientation(solution[self.total_items + i])
             size = self.get_size(item, orientation)
+            # print(f'Item: {item} | Orientation: {orientation} | Size: {size} | Order: {orders[i]}')
             self.items[orders[i]] = size
 
     def evaluate(self, solution: List[float]) -> float:
@@ -154,22 +157,26 @@ class Placement:
             selected_EMS = None
 
             for bin in self.bins:
+                # print(f'Bin index: {self.bins.index(bin)}')
                 EMS = bin.choose(item)
                 # print(f'Item: {item} | Selected EMS: {EMS}')
                 if EMS is not None:
                     selected_bin = bin
                     selected_EMS = EMS
+                    break
 
-                if selected_bin is None:
-                    self.used_bins += 1
-                    self.bins.append(self.Bin(self.bin_size))
-                    selected_bin = self.bins[-1]
-                    selected_EMS = selected_bin.EMSs[0]
+            if selected_bin is None:
+                self.used_bins += 1
+                self.bins.append(self.Bin(self.bin_size))
+                selected_bin = self.bins[-1]
+                selected_EMS = selected_bin.EMSs[0]
 
-            print(f'Item: {item} | Selected EMS: {selected_EMS} | Bin index: {self.bins.index(selected_bin)}')  
+            # print(f'Item: {item} | Selected EMS: {selected_EMS} | Bin index: {self.bins.index(selected_bin)}')
             selected_bin.update(item, selected_EMS)
-            print(f'Updated EMSs: {selected_bin.EMSs}')
-            # print(f'Item: {item} | EMSs: {selected_bin.EMSs} | Bin index: {self.bins.index(selected_bin)}')
+            if 11 < 3:
+                print(f'Updated load: {selected_bin.load}')
+                print(f'Updated EMSs: {selected_bin.EMSs}')
+                print(f'Item: {item} | EMSs: {selected_bin.EMSs} | Bin index: {self.bins.index(selected_bin)}')
 
         self.loads = [bin.load for bin in self.bins]
         least_load = np.min(self.loads) / (self.bin_size[0] * self.bin_size[1] * self.bin_size[2])
@@ -189,10 +196,11 @@ if 11 < 3:
     fitness = placement.evaluate(solution)
     print(f'Fitness: {fitness} | Used bins: {placement.used_bins} | Loads: {placement.problem.loads}')
 
-if 1 < 3:
-    np.random.seed(0)
+if 11 < 3:
+    np.random.seed(1)
     problem = Problem('Data/Dataset/20_1_1.dat')
     placement = Placement(problem)
+    # solution = [i/problem.total_items for i in range(problem.total_items)] + [0.1 for _ in range(problem.total_items)]
     solution = np.random.rand(2 * problem.total_items)
     fitness = placement.evaluate(solution)
     print(f'Fitness: {fitness} | Used bins: {placement.used_bins} | Loads: {placement.problem.loads}')
