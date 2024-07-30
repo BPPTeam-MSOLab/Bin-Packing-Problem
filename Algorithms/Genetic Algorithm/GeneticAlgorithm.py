@@ -2,6 +2,7 @@ import numpy as np
 from typing import List, Tuple, Callable
 from Problem import Problem, Placement
 from functools import partial
+from tqdm import tqdm
 
 """
 We implement a genetic algorithm to solve the 3D bin packing problem.
@@ -154,14 +155,13 @@ class Optimizer:
 
         self.n_generations = self.config.n_generations
 
-        if 'frequency' in kwargs:
-            self.frequency = kwargs['frequency']
-        else:
-            self.frequency = 100
+        self.frequency = kwargs.get('frequency', 100)
+        self.use_tqdm = kwargs.get('use_tqdm', False)
 
     def optimize(self):
         self.population.initialize()
-        for generation in range(self.n_generations):
+        loop = tqdm(range(self.n_generations)) if self.use_tqdm else range(self.n_generations)
+        for generation in loop:
             self.population.partition()
             if self.config.verbose and generation % self.frequency == 0:
                 print(f'Best fitness: {self.config.problem.best_fitness} | Number of bins used: {self.config.problem.used_bins} | Loads: {self.config.problem.loads}')
@@ -195,7 +195,7 @@ if 1 < 3:
         problem = Problem(path)
         objective_function = partial(evaluate, problem=problem)
         Configuration(objective_function, problem.total_items, 100, 10, 11, 0.5, 0.3, problem, True)
-        Optimizer(frequency=10).optimize()
+        Optimizer(frequency=10, use_tqdm=True).optimize()
         problem.visualize()
 
     solve('Data/Dataset/20_1_1.dat', 0)
