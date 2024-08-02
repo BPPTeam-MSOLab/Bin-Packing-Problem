@@ -7,7 +7,7 @@ from typing import List, Tuple
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 class Generator:
-    def __init__(self, n_items: int, n_bins: int = 1, seed: int = 0, bin_size: List[int] = [100, 100, 100], **kargs):
+    def __init__(self, n_items: int, n_bins: int = 1, seed: int = 0, bin_size: List[int] = [100, 100, 100], **kwargs):
         """
         Parameters:
         :param n_items: Number of items to generate for each bin
@@ -28,13 +28,18 @@ class Generator:
         self.flat_items: List[Tuple[List[int], List[int]]] = None
         self.total_volume: int = 0
 
-        if 'n_samples' in kargs:
-            self.n_samples: int = kargs['n_samples']
+        if 'n_samples' in kwargs:
+            self.n_samples: int = kwargs['n_samples']
             # Check if the number of samples is integer and between 0 and n_items
             if not isinstance(self.n_samples, int) or self.n_samples < 0 or self.n_samples > n_items:
                 raise ValueError('Number of samples must be an integer between 0 and n_items')
         else:
             self.n_samples: int = n_items // 10
+
+        if 'filename' in kwargs:
+            self.filename: str = kwargs['filename']
+        else:
+            self.filename: str = f'Data/Dataset/{self.n_items}_{self.n_bins}_{self.seed}.dat'
 
     def generate(self) -> None:
         """
@@ -109,8 +114,7 @@ class Generator:
         os.makedirs(os.path.dirname(f'Data/Dataset/'), exist_ok=True)
 
         # Write data to file
-        filename: str = f'Data/Dataset/{self.n_items}_{self.n_bins}_{self.seed}.dat'
-        with open(filename, 'w') as file:
+        with open(self.filename, 'w') as file:
             file.write(f'Bin size: {self.bin_size[0]} {self.bin_size[1]} {self.bin_size[2]}\n')
             file.write(f'Number of bins: {self.n_bins}\n')
             file.write(f'Number of items per bin: {self.n_items}\n')
@@ -183,8 +187,7 @@ class Generator:
         """
         Delete the generated data file.
         """
-        filename = f'Data/Dataset/{self.n_items}_{self.n_bins}_{self.seed}.dat'
-        os.remove(filename)
+        os.remove(self.filename)
 
 # Example of using the Generator class
 if 11 < 3:
@@ -205,5 +208,11 @@ if 11 < 3:
     # generator.visualize()
     # generator.delete()
 
-if 1 < 3:
+if 11 < 3:
     Generator(20, 5, seed=2, bin_size=[10, 10, 10], n_samples=10).generate()
+    
+if 11 < 3:
+    generator = Generator(100, 2, seed=4, bin_size=[100, 100, 100], filename='testcase.dat')
+    generator.generate()
+    generator.visualize()
+    generator.delete()
